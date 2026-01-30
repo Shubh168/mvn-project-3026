@@ -6,6 +6,10 @@ pipeline {
     maven 'maven-3.9.12'
   }
 
+  environment {
+    IMAGE = 'shubh98/maven-app'
+  }
+
   stages {
     stage('Clean and Build the Application'){
       steps{
@@ -20,5 +24,21 @@ pipeline {
           }
         }
     }
+    stage('Docker Image creation') {
+            steps {
+                sh 'docker build -t shubh98/maven-app:latest .'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push shubh98/maven-app:latest
+                    '''
+                }
+            }
+        }
   }
 }
